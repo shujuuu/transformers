@@ -30,10 +30,10 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import torch
+from pplm_classification_head import ClassificationHead
 from torch import nn
 from tqdm import trange
 
-from pplm_classification_head import ClassificationHead
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from transformers.file_utils import cached_path
 
@@ -61,7 +61,7 @@ DISCRIMINATOR_MODELS_PARAMS = {
         "embed_size": 1024,
         "class_vocab": {"non_clickbait": 0, "clickbait": 1},
         "default_class": 1,
-        "pretrained_model": "gpt2-medium",
+        "pretrained_model": "openai-community/gpt2-medium",
     },
     "sentiment": {
         "url": "https://s3.amazonaws.com/models.huggingface.co/bert/pplm/discriminators/SST_classifier_head.pt",
@@ -69,7 +69,7 @@ DISCRIMINATOR_MODELS_PARAMS = {
         "embed_size": 1024,
         "class_vocab": {"very_positive": 2, "very_negative": 3},
         "default_class": 3,
-        "pretrained_model": "gpt2-medium",
+        "pretrained_model": "openai-community/gpt2-medium",
     },
 }
 
@@ -127,11 +127,9 @@ def perturb_past(
     _, _, _, curr_length, _ = past[0].shape
 
     if curr_length > window_length and window_length > 0:
-        ones_key_val_shape = tuple(past[0].shape[:-2]) + tuple([window_length]) + tuple(past[0].shape[-1:])
+        ones_key_val_shape = tuple(past[0].shape[:-2]) + (window_length,) + tuple(past[0].shape[-1:])
 
-        zeros_key_val_shape = (
-            tuple(past[0].shape[:-2]) + tuple([curr_length - window_length]) + tuple(past[0].shape[-1:])
-        )
+        zeros_key_val_shape = tuple(past[0].shape[:-2]) + (curr_length - window_length,) + tuple(past[0].shape[-1:])
 
         ones_mask = torch.ones(ones_key_val_shape)
         ones_mask = decay_mask * ones_mask.permute(0, 1, 2, 4, 3)
@@ -181,7 +179,14 @@ def perturb_past(
             for _ in range(horizon_length):
                 inputs_embeds = torch.matmul(curr_probs, wte.weight.data)
                 lm_output = model(past_key_values=curr_unpert_past, inputs_embeds=inputs_embeds)
-                curr_unpert_past, curr_all_hidden = lm_output["past_key_values"], lm_output["hidden_states"]
+                curr_all_logits, curr_unpert_past, curr_all_hidden = (
+                    lm_output["logits"],
+                    lm_output["past_key_values"],
+                    lm_output["hidden_states"],
+                )
+                curr_logits = curr_all_logits[:, -1, :]
+                curr_probs = nn.functional.softmax(curr_logits, dim=-1)
+                curr_probs = torch.unsqueeze(curr_probs, dim=1)
                 curr_hidden = curr_all_hidden[-1]
                 new_accumulated_hidden = new_accumulated_hidden + torch.sum(curr_hidden, dim=1)
 
@@ -338,7 +343,7 @@ def full_text_generation(
     gm_scale=0.9,
     kl_scale=0.01,
     repetition_penalty=1.0,
-    **kwargs
+    **kwargs,
 ):
     classifier, class_id = get_classifier(discrim, class_label, device)
 
@@ -456,7 +461,6 @@ def generate_text_pplm(
     unpert_discrim_loss = 0
     loss_in_time = []
     for i in trange(length, ascii=True):
-
         # Get past/probs for current output, except for last word
         # Note that GPT takes 2 inputs: past + current_token
 
@@ -540,10 +544,9 @@ def generate_text_pplm(
 
         # Fuse the modified model and original model
         if perturb:
-
             unpert_probs = nn.functional.softmax(unpert_logits[:, -1, :], dim=-1)
 
-            pert_probs = (pert_probs ** gm_scale) * (unpert_probs ** (1 - gm_scale))  # + SMALL_CONST
+            pert_probs = (pert_probs**gm_scale) * (unpert_probs ** (1 - gm_scale))  # + SMALL_CONST
             pert_probs = top_k_filter(pert_probs, k=top_k, probs=True)  # + SMALL_CONST
 
             # rescale
@@ -582,7 +585,7 @@ def set_generic_model_params(discrim_weights, discrim_meta):
 
 
 def run_pplm_example(
-    pretrained_model="gpt2-medium",
+    pretrained_model="openai-community/gpt2-medium",
     cond_text="",
     uncond=False,
     num_samples=1,
@@ -735,7 +738,7 @@ if __name__ == "__main__":
         "--pretrained_model",
         "-M",
         type=str,
-        default="gpt2-medium",
+        default="openai-community/gpt2-medium",
         help="pretrained model name or path to local checkpoint",
     )
     parser.add_argument("--cond_text", type=str, default="The lake", help="Prefix texts to condition on")

@@ -1,82 +1,120 @@
-import os
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import List, Union
 
-import requests
+import numpy as np
 
-from ..feature_extraction_utils import PreTrainedFeatureExtractor
-from ..file_utils import add_end_docstrings, is_torch_available, is_vision_available, requires_backends
-from ..utils import logging
-from .base import PIPELINE_INIT_ARGS, Pipeline
+from ..utils import (
+    ExplicitEnum,
+    add_end_docstrings,
+    is_tf_available,
+    is_torch_available,
+    is_vision_available,
+    logging,
+    requires_backends,
+)
+from .base import Pipeline, build_pipeline_init_args
 
-
-if TYPE_CHECKING:
-    from ..modeling_tf_utils import TFPreTrainedModel
-    from ..modeling_utils import PreTrainedModel
 
 if is_vision_available():
     from PIL import Image
 
+    from ..image_utils import load_image
+
+if is_tf_available():
+    from ..models.auto.modeling_tf_auto import TF_MODEL_FOR_IMAGE_CLASSIFICATION_MAPPING_NAMES
+
 if is_torch_available():
     import torch
 
-    from ..models.auto.modeling_auto import MODEL_FOR_IMAGE_CLASSIFICATION_MAPPING
+    from ..models.auto.modeling_auto import MODEL_FOR_IMAGE_CLASSIFICATION_MAPPING_NAMES
 
 logger = logging.get_logger(__name__)
 
 
-@add_end_docstrings(PIPELINE_INIT_ARGS)
+# Copied from transformers.pipelines.text_classification.sigmoid
+def sigmoid(_outputs):
+    return 1.0 / (1.0 + np.exp(-_outputs))
+
+
+# Copied from transformers.pipelines.text_classification.softmax
+def softmax(_outputs):
+    maxes = np.max(_outputs, axis=-1, keepdims=True)
+    shifted_exp = np.exp(_outputs - maxes)
+    return shifted_exp / shifted_exp.sum(axis=-1, keepdims=True)
+
+
+# Copied from transformers.pipelines.text_classification.ClassificationFunction
+class ClassificationFunction(ExplicitEnum):
+    SIGMOID = "sigmoid"
+    SOFTMAX = "softmax"
+    NONE = "none"
+
+
+@add_end_docstrings(
+    build_pipeline_init_args(has_image_processor=True),
+    r"""
+        function_to_apply (`str`, *optional*, defaults to `"default"`):
+            The function to apply to the model outputs in order to retrieve the scores. Accepts four different values:
+
+            - `"default"`: if the model has a single label, will apply the sigmoid function on the output. If the model
+              has several labels, will apply the softmax function on the output.
+            - `"sigmoid"`: Applies the sigmoid function on the output.
+            - `"softmax"`: Applies the softmax function on the output.
+            - `"none"`: Does not apply any function on the output.""",
+)
 class ImageClassificationPipeline(Pipeline):
     """
-    Image classification pipeline using any :obj:`AutoModelForImageClassification`. This pipeline predicts the class of
-    an image.
+    Image classification pipeline using any `AutoModelForImageClassification`. This pipeline predicts the class of an
+    image.
 
-    This image classification pipeline can currently be loaded from :func:`~transformers.pipeline` using the following
-    task identifier: :obj:`"image-classification"`.
+    Example:
 
-    See the list of available models on `huggingface.co/models
-    <https://huggingface.co/models?filter=image-classification>`__.
+    ```python
+    >>> from transformers import pipeline
+
+    >>> classifier = pipeline(model="microsoft/beit-base-patch16-224-pt22k-ft22k")
+    >>> classifier("https://huggingface.co/datasets/Narsil/image_dummy/raw/main/parrots.png")
+    [{'score': 0.442, 'label': 'macaw'}, {'score': 0.088, 'label': 'popinjay'}, {'score': 0.075, 'label': 'parrot'}, {'score': 0.073, 'label': 'parodist, lampooner'}, {'score': 0.046, 'label': 'poll, poll_parrot'}]
+    ```
+
+    Learn more about the basics of using a pipeline in the [pipeline tutorial](../pipeline_tutorial)
+
+    This image classification pipeline can currently be loaded from [`pipeline`] using the following task identifier:
+    `"image-classification"`.
+
+    See the list of available models on
+    [huggingface.co/models](https://huggingface.co/models?filter=image-classification).
     """
 
-    def __init__(
-        self,
-        model: Union["PreTrainedModel", "TFPreTrainedModel"],
-        feature_extractor: PreTrainedFeatureExtractor,
-        framework: Optional[str] = None,
-        **kwargs
-    ):
-        super().__init__(model, feature_extractor=feature_extractor, framework=framework, **kwargs)
+    function_to_apply: ClassificationFunction = ClassificationFunction.NONE
 
-        if self.framework == "tf":
-            raise ValueError(f"The {self.__class__} is only available in PyTorch.")
-
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         requires_backends(self, "vision")
-
-        self.check_model_type(MODEL_FOR_IMAGE_CLASSIFICATION_MAPPING)
-
-        self.feature_extractor = feature_extractor
-
-    @staticmethod
-    def load_image(image: Union[str, "Image.Image"]):
-        if isinstance(image, str):
-            if image.startswith("http://") or image.startswith("https://"):
-                # We need to actually check for a real protocol, otherwise it's impossible to use a local file
-                # like http_huggingface_co.png
-                return Image.open(requests.get(image, stream=True).raw)
-            elif os.path.isfile(image):
-                return Image.open(image)
-        elif isinstance(image, Image.Image):
-            return image
-
-        raise ValueError(
-            "Incorrect format used for image. Should be an url linking to an image, a local path, or a PIL image."
+        self.check_model_type(
+            TF_MODEL_FOR_IMAGE_CLASSIFICATION_MAPPING_NAMES
+            if self.framework == "tf"
+            else MODEL_FOR_IMAGE_CLASSIFICATION_MAPPING_NAMES
         )
 
-    def __call__(self, images: Union[str, List[str], "Image", List["Image"]], top_k=5):
+    def _sanitize_parameters(self, top_k=None, function_to_apply=None, timeout=None):
+        preprocess_params = {}
+        if timeout is not None:
+            preprocess_params["timeout"] = timeout
+        postprocess_params = {}
+        if top_k is not None:
+            postprocess_params["top_k"] = top_k
+        if isinstance(function_to_apply, str):
+            function_to_apply = ClassificationFunction(function_to_apply.lower())
+        if function_to_apply is not None:
+            postprocess_params["function_to_apply"] = function_to_apply
+        return preprocess_params, {}, postprocess_params
+
+    def __call__(self, images: Union[str, List[str], "Image.Image", List["Image.Image"]], **kwargs):
         """
         Assign labels to the image(s) passed as inputs.
 
         Args:
-            images (:obj:`str`, :obj:`List[str]`, :obj:`PIL.Image` or :obj:`List[PIL.Image]`):
+            images (`str`, `List[str]`, `PIL.Image` or `List[PIL.Image]`):
                 The pipeline handles three types of images:
 
                 - A string containing a http link pointing to an image
@@ -86,9 +124,27 @@ class ImageClassificationPipeline(Pipeline):
                 The pipeline accepts either a single image or a batch of images, which must then be passed as a string.
                 Images in a batch must all be in the same format: all as http links, all as local paths, or all as PIL
                 images.
-            top_k (:obj:`int`, `optional`, defaults to 5):
+            function_to_apply (`str`, *optional*, defaults to `"default"`):
+                The function to apply to the model outputs in order to retrieve the scores. Accepts four different
+                values:
+
+                If this argument is not specified, then it will apply the following functions according to the number
+                of labels:
+
+                - If the model has a single label, will apply the sigmoid function on the output.
+                - If the model has several labels, will apply the softmax function on the output.
+
+                Possible values are:
+
+                - `"sigmoid"`: Applies the sigmoid function on the output.
+                - `"softmax"`: Applies the softmax function on the output.
+                - `"none"`: Does not apply any function on the output.
+            top_k (`int`, *optional*, defaults to 5):
                 The number of top labels that will be returned by the pipeline. If the provided number is higher than
                 the number of labels available in the model configuration, it will default to the number of labels.
+            timeout (`float`, *optional*, defaults to None):
+                The maximum time in seconds to wait for fetching images from the web. If None, no timeout is set and
+                the call may block forever.
 
         Return:
             A dictionary or a list of dictionaries containing result. If the input is a single image, will return a
@@ -97,37 +153,56 @@ class ImageClassificationPipeline(Pipeline):
 
             The dictionaries contain the following keys:
 
-            - **label** (:obj:`str`) -- The label identified by the model.
-            - **score** (:obj:`int`) -- The score attributed by the model for that label.
+            - **label** (`str`) -- The label identified by the model.
+            - **score** (`int`) -- The score attributed by the model for that label.
         """
-        is_batched = isinstance(images, list)
+        return super().__call__(images, **kwargs)
 
-        if not is_batched:
-            images = [images]
+    def preprocess(self, image, timeout=None):
+        image = load_image(image, timeout=timeout)
+        model_inputs = self.image_processor(images=image, return_tensors=self.framework)
+        if self.framework == "pt":
+            model_inputs = model_inputs.to(self.torch_dtype)
+        return model_inputs
 
-        images = [self.load_image(image) for image in images]
+    def _forward(self, model_inputs):
+        model_outputs = self.model(**model_inputs)
+        return model_outputs
+
+    def postprocess(self, model_outputs, function_to_apply=None, top_k=5):
+        if function_to_apply is None:
+            if self.model.config.problem_type == "single_label_classification" or self.model.config.num_labels == 1:
+                function_to_apply = ClassificationFunction.SIGMOID
+            elif self.model.config.problem_type == "multi_label_classification" or self.model.config.num_labels > 1:
+                function_to_apply = ClassificationFunction.SOFTMAX
+            elif hasattr(self.model.config, "function_to_apply") and function_to_apply is None:
+                function_to_apply = self.model.config.function_to_apply
+            else:
+                function_to_apply = ClassificationFunction.NONE
 
         if top_k > self.model.config.num_labels:
             top_k = self.model.config.num_labels
 
-        with torch.no_grad():
-            inputs = self.feature_extractor(images=images, return_tensors="pt")
-            outputs = self.model(**inputs)
-
-            probs = outputs.logits.softmax(-1)
-            scores, ids = probs.topk(top_k)
-
-            scores = scores.tolist()
-            ids = ids.tolist()
-
-        if not is_batched:
-            scores, ids = scores[0], ids[0]
-            labels = [{"score": score, "label": self.model.config.id2label[_id]} for score, _id in zip(scores, ids)]
+        outputs = model_outputs["logits"][0]
+        if self.framework == "pt" and outputs.dtype in (torch.bfloat16, torch.float16):
+            outputs = outputs.to(torch.float32).numpy()
         else:
-            labels = []
-            for scores, ids in zip(scores, ids):
-                labels.append(
-                    [{"score": score, "label": self.model.config.id2label[_id]} for score, _id in zip(scores, ids)]
-                )
+            outputs = outputs.numpy()
 
-        return labels
+        if function_to_apply == ClassificationFunction.SIGMOID:
+            scores = sigmoid(outputs)
+        elif function_to_apply == ClassificationFunction.SOFTMAX:
+            scores = softmax(outputs)
+        elif function_to_apply == ClassificationFunction.NONE:
+            scores = outputs
+        else:
+            raise ValueError(f"Unrecognized `function_to_apply` argument: {function_to_apply}")
+
+        dict_scores = [
+            {"label": self.model.config.id2label[i], "score": score.item()} for i, score in enumerate(scores)
+        ]
+        dict_scores.sort(key=lambda x: x["score"], reverse=True)
+        if top_k is not None:
+            dict_scores = dict_scores[:top_k]
+
+        return dict_scores

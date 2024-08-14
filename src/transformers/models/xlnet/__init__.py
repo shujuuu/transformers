@@ -1,7 +1,3 @@
-# flake8: noqa
-# There's no way to ignore "F401 '...' imported but unused" warnings in this
-# module, but to preserve other warnings. So, don't check this module at all.
-
 # Copyright 2020 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +14,9 @@
 
 from typing import TYPE_CHECKING
 
-from ...file_utils import (
-    _BaseLazyModule,
+from ...utils import (
+    OptionalDependencyNotAvailable,
+    _LazyModule,
     is_sentencepiece_available,
     is_tf_available,
     is_tokenizers_available,
@@ -27,19 +24,31 @@ from ...file_utils import (
 )
 
 
-_import_structure = {
-    "configuration_xlnet": ["XLNET_PRETRAINED_CONFIG_ARCHIVE_MAP", "XLNetConfig"],
-}
+_import_structure = {"configuration_xlnet": ["XLNetConfig"]}
 
-if is_sentencepiece_available():
+try:
+    if not is_sentencepiece_available():
+        raise OptionalDependencyNotAvailable()
+except OptionalDependencyNotAvailable:
+    pass
+else:
     _import_structure["tokenization_xlnet"] = ["XLNetTokenizer"]
 
-if is_tokenizers_available():
+try:
+    if not is_tokenizers_available():
+        raise OptionalDependencyNotAvailable()
+except OptionalDependencyNotAvailable:
+    pass
+else:
     _import_structure["tokenization_xlnet_fast"] = ["XLNetTokenizerFast"]
 
-if is_torch_available():
+try:
+    if not is_torch_available():
+        raise OptionalDependencyNotAvailable()
+except OptionalDependencyNotAvailable:
+    pass
+else:
     _import_structure["modeling_xlnet"] = [
-        "XLNET_PRETRAINED_MODEL_ARCHIVE_LIST",
         "XLNetForMultipleChoice",
         "XLNetForQuestionAnswering",
         "XLNetForQuestionAnsweringSimple",
@@ -51,9 +60,13 @@ if is_torch_available():
         "load_tf_weights_in_xlnet",
     ]
 
-if is_tf_available():
+try:
+    if not is_tf_available():
+        raise OptionalDependencyNotAvailable()
+except OptionalDependencyNotAvailable:
+    pass
+else:
     _import_structure["modeling_tf_xlnet"] = [
-        "TF_XLNET_PRETRAINED_MODEL_ARCHIVE_LIST",
         "TFXLNetForMultipleChoice",
         "TFXLNetForQuestionAnsweringSimple",
         "TFXLNetForSequenceClassification",
@@ -66,17 +79,31 @@ if is_tf_available():
 
 
 if TYPE_CHECKING:
-    from .configuration_xlnet import XLNET_PRETRAINED_CONFIG_ARCHIVE_MAP, XLNetConfig
+    from .configuration_xlnet import XLNetConfig
 
-    if is_sentencepiece_available():
+    try:
+        if not is_sentencepiece_available():
+            raise OptionalDependencyNotAvailable()
+    except OptionalDependencyNotAvailable:
+        pass
+    else:
         from .tokenization_xlnet import XLNetTokenizer
 
-    if is_tokenizers_available():
+    try:
+        if not is_tokenizers_available():
+            raise OptionalDependencyNotAvailable()
+    except OptionalDependencyNotAvailable:
+        pass
+    else:
         from .tokenization_xlnet_fast import XLNetTokenizerFast
 
-    if is_torch_available():
+    try:
+        if not is_torch_available():
+            raise OptionalDependencyNotAvailable()
+    except OptionalDependencyNotAvailable:
+        pass
+    else:
         from .modeling_xlnet import (
-            XLNET_PRETRAINED_MODEL_ARCHIVE_LIST,
             XLNetForMultipleChoice,
             XLNetForQuestionAnswering,
             XLNetForQuestionAnsweringSimple,
@@ -88,9 +115,13 @@ if TYPE_CHECKING:
             load_tf_weights_in_xlnet,
         )
 
-    if is_tf_available():
+    try:
+        if not is_tf_available():
+            raise OptionalDependencyNotAvailable()
+    except OptionalDependencyNotAvailable:
+        pass
+    else:
         from .modeling_tf_xlnet import (
-            TF_XLNET_PRETRAINED_MODEL_ARCHIVE_LIST,
             TFXLNetForMultipleChoice,
             TFXLNetForQuestionAnsweringSimple,
             TFXLNetForSequenceClassification,
@@ -102,19 +133,6 @@ if TYPE_CHECKING:
         )
 
 else:
-    import importlib
-    import os
     import sys
 
-    class _LazyModule(_BaseLazyModule):
-        """
-        Module class that surfaces all objects but only performs associated imports when the objects are requested.
-        """
-
-        __file__ = globals()["__file__"]
-        __path__ = [os.path.dirname(__file__)]
-
-        def _get_module(self, module_name: str):
-            return importlib.import_module("." + module_name, self.__name__)
-
-    sys.modules[__name__] = _LazyModule(__name__, _import_structure)
+    sys.modules[__name__] = _LazyModule(__name__, globals()["__file__"], _import_structure, module_spec=__spec__)

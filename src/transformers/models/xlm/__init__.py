@@ -1,7 +1,3 @@
-# flake8: noqa
-# There's no way to ignore "F401 '...' imported but unused" warnings in this
-# module, but to preserve other warnings. So, don't check this module at all.
-
 # Copyright 2020 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,17 +14,21 @@
 
 from typing import TYPE_CHECKING
 
-from ...file_utils import _BaseLazyModule, is_tf_available, is_torch_available
+from ...utils import OptionalDependencyNotAvailable, _LazyModule, is_tf_available, is_torch_available
 
 
 _import_structure = {
-    "configuration_xlm": ["XLM_PRETRAINED_CONFIG_ARCHIVE_MAP", "XLMConfig"],
+    "configuration_xlm": ["XLMConfig", "XLMOnnxConfig"],
     "tokenization_xlm": ["XLMTokenizer"],
 }
 
-if is_torch_available():
+try:
+    if not is_torch_available():
+        raise OptionalDependencyNotAvailable()
+except OptionalDependencyNotAvailable:
+    pass
+else:
     _import_structure["modeling_xlm"] = [
-        "XLM_PRETRAINED_MODEL_ARCHIVE_LIST",
         "XLMForMultipleChoice",
         "XLMForQuestionAnswering",
         "XLMForQuestionAnsweringSimple",
@@ -39,9 +39,13 @@ if is_torch_available():
         "XLMWithLMHeadModel",
     ]
 
-if is_tf_available():
+try:
+    if not is_tf_available():
+        raise OptionalDependencyNotAvailable()
+except OptionalDependencyNotAvailable:
+    pass
+else:
     _import_structure["modeling_tf_xlm"] = [
-        "TF_XLM_PRETRAINED_MODEL_ARCHIVE_LIST",
         "TFXLMForMultipleChoice",
         "TFXLMForQuestionAnsweringSimple",
         "TFXLMForSequenceClassification",
@@ -54,12 +58,16 @@ if is_tf_available():
 
 
 if TYPE_CHECKING:
-    from .configuration_xlm import XLM_PRETRAINED_CONFIG_ARCHIVE_MAP, XLMConfig
+    from .configuration_xlm import XLMConfig, XLMOnnxConfig
     from .tokenization_xlm import XLMTokenizer
 
-    if is_torch_available():
+    try:
+        if not is_torch_available():
+            raise OptionalDependencyNotAvailable()
+    except OptionalDependencyNotAvailable:
+        pass
+    else:
         from .modeling_xlm import (
-            XLM_PRETRAINED_MODEL_ARCHIVE_LIST,
             XLMForMultipleChoice,
             XLMForQuestionAnswering,
             XLMForQuestionAnsweringSimple,
@@ -70,9 +78,13 @@ if TYPE_CHECKING:
             XLMWithLMHeadModel,
         )
 
-    if is_tf_available():
+    try:
+        if not is_tf_available():
+            raise OptionalDependencyNotAvailable()
+    except OptionalDependencyNotAvailable:
+        pass
+    else:
         from .modeling_tf_xlm import (
-            TF_XLM_PRETRAINED_MODEL_ARCHIVE_LIST,
             TFXLMForMultipleChoice,
             TFXLMForQuestionAnsweringSimple,
             TFXLMForSequenceClassification,
@@ -84,19 +96,6 @@ if TYPE_CHECKING:
         )
 
 else:
-    import importlib
-    import os
     import sys
 
-    class _LazyModule(_BaseLazyModule):
-        """
-        Module class that surfaces all objects but only performs associated imports when the objects are requested.
-        """
-
-        __file__ = globals()["__file__"]
-        __path__ = [os.path.dirname(__file__)]
-
-        def _get_module(self, module_name: str):
-            return importlib.import_module("." + module_name, self.__name__)
-
-    sys.modules[__name__] = _LazyModule(__name__, _import_structure)
+    sys.modules[__name__] = _LazyModule(__name__, globals()["__file__"], _import_structure, module_spec=__spec__)

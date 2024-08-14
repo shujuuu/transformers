@@ -1,7 +1,3 @@
-# flake8: noqa
-# There's no way to ignore "F401 '...' imported but unused" warnings in this
-# module, but to preserve other warnings. So, don't check this module at all.
-
 # Copyright 2020 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,20 +14,38 @@
 
 from typing import TYPE_CHECKING
 
-from ...file_utils import _BaseLazyModule, is_tf_available, is_tokenizers_available, is_torch_available
+from ...utils import (
+    OptionalDependencyNotAvailable,
+    _LazyModule,
+    is_tf_available,
+    is_tokenizers_available,
+    is_torch_available,
+)
 
 
 _import_structure = {
-    "configuration_longformer": ["LONGFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP", "LongformerConfig"],
+    "configuration_longformer": [
+        "LongformerConfig",
+        "LongformerOnnxConfig",
+    ],
     "tokenization_longformer": ["LongformerTokenizer"],
 }
 
-if is_tokenizers_available():
+try:
+    if not is_tokenizers_available():
+        raise OptionalDependencyNotAvailable()
+except OptionalDependencyNotAvailable:
+    pass
+else:
     _import_structure["tokenization_longformer_fast"] = ["LongformerTokenizerFast"]
 
-if is_torch_available():
+try:
+    if not is_torch_available():
+        raise OptionalDependencyNotAvailable()
+except OptionalDependencyNotAvailable:
+    pass
+else:
     _import_structure["modeling_longformer"] = [
-        "LONGFORMER_PRETRAINED_MODEL_ARCHIVE_LIST",
         "LongformerForMaskedLM",
         "LongformerForMultipleChoice",
         "LongformerForQuestionAnswering",
@@ -42,9 +56,13 @@ if is_torch_available():
         "LongformerSelfAttention",
     ]
 
-if is_tf_available():
+try:
+    if not is_tf_available():
+        raise OptionalDependencyNotAvailable()
+except OptionalDependencyNotAvailable:
+    pass
+else:
     _import_structure["modeling_tf_longformer"] = [
-        "TF_LONGFORMER_PRETRAINED_MODEL_ARCHIVE_LIST",
         "TFLongformerForMaskedLM",
         "TFLongformerForMultipleChoice",
         "TFLongformerForQuestionAnswering",
@@ -57,15 +75,27 @@ if is_tf_available():
 
 
 if TYPE_CHECKING:
-    from .configuration_longformer import LONGFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP, LongformerConfig
+    from .configuration_longformer import (
+        LongformerConfig,
+        LongformerOnnxConfig,
+    )
     from .tokenization_longformer import LongformerTokenizer
 
-    if is_tokenizers_available():
+    try:
+        if not is_tokenizers_available():
+            raise OptionalDependencyNotAvailable()
+    except OptionalDependencyNotAvailable:
+        pass
+    else:
         from .tokenization_longformer_fast import LongformerTokenizerFast
 
-    if is_torch_available():
+    try:
+        if not is_torch_available():
+            raise OptionalDependencyNotAvailable()
+    except OptionalDependencyNotAvailable:
+        pass
+    else:
         from .modeling_longformer import (
-            LONGFORMER_PRETRAINED_MODEL_ARCHIVE_LIST,
             LongformerForMaskedLM,
             LongformerForMultipleChoice,
             LongformerForQuestionAnswering,
@@ -76,9 +106,13 @@ if TYPE_CHECKING:
             LongformerSelfAttention,
         )
 
-    if is_tf_available():
+    try:
+        if not is_tf_available():
+            raise OptionalDependencyNotAvailable()
+    except OptionalDependencyNotAvailable:
+        pass
+    else:
         from .modeling_tf_longformer import (
-            TF_LONGFORMER_PRETRAINED_MODEL_ARCHIVE_LIST,
             TFLongformerForMaskedLM,
             TFLongformerForMultipleChoice,
             TFLongformerForQuestionAnswering,
@@ -90,19 +124,6 @@ if TYPE_CHECKING:
         )
 
 else:
-    import importlib
-    import os
     import sys
 
-    class _LazyModule(_BaseLazyModule):
-        """
-        Module class that surfaces all objects but only performs associated imports when the objects are requested.
-        """
-
-        __file__ = globals()["__file__"]
-        __path__ = [os.path.dirname(__file__)]
-
-        def _get_module(self, module_name: str):
-            return importlib.import_module("." + module_name, self.__name__)
-
-    sys.modules[__name__] = _LazyModule(__name__, _import_structure)
+    sys.modules[__name__] = _LazyModule(__name__, globals()["__file__"], _import_structure, module_spec=__spec__)
