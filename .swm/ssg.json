@@ -2,7 +2,6 @@
   "generator": "docusaurus",
   "url": "https://github.com/transformers",
   "docs": {
-      "../README.md": "Docs",
       "command-line-overview.uxh0vnav.sw.md": "Docs",
       "data-processing-overview.u990rrqr.sw.md": "Docs",
       "exploring-big-bird-model.u3yklc7d.sw.md": "Docs",
@@ -59,7 +58,8 @@
       "utilities-overview.pey33yd3.sw.md": "Docs",
       "what-is-model-parallelism-in-transformers.q9qix9bc.sw.md": "Docs",
       "what-is-pipeline-base-in-pipelines.gevbu6kj.sw.md": "Docs",
-      "what-is-utils-in-data-processors.kcox16un.sw.md": "Docs"
+      "what-is-utils-in-data-processors.kcox16un.sw.md": "Docs",
+      ../"README.md": "Docs",
   },
   "config": {
       "title": "transformers",
