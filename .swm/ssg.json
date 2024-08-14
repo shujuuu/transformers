@@ -2,8 +2,6 @@
   "generator": "docusaurus",
   "url": "https://github.com/transformers",
   "docs": {
-      "../CONTRIBUTING.md": "Docs",
-      "../CODE_OF_CONDUCT.md": "Docs",
       "../README.md": "Docs",
       "command-line-overview.uxh0vnav.sw.md": "Docs",
       "data-processing-overview.u990rrqr.sw.md": "Docs",
