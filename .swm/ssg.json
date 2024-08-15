@@ -63,7 +63,7 @@
       "/CODE_OF_CONDUCT.md": "Docs",
       "/SECURITY.md": "Docs",
       "/regular-markdown.md": "Docs",
-      "/awesome-transformer.md": "Docs",
+      "/awesome-transformer.md": "Docs"
   },
   "config": {
       "title": "transformers",
