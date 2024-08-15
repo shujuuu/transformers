@@ -59,7 +59,7 @@
       "what-is-model-parallelism-in-transformers.q9qix9bc.sw.md": "Docs",
       "what-is-pipeline-base-in-pipelines.gevbu6kj.sw.md": "Docs",
       "what-is-utils-in-data-processors.kcox16un.sw.md": "Docs",
-      "../README.md": "Docs",
+      "/README.md": "Docs",
   },
   "config": {
       "title": "transformers",
