@@ -60,7 +60,10 @@
       "what-is-pipeline-base-in-pipelines.gevbu6kj.sw.md": "Docs",
       "what-is-utils-in-data-processors.kcox16un.sw.md": "Docs",
       "/CONTRIBUTING.md": "Docs",
-      "/CODE_OF_CONDUCT.md": "Docs"
+      "/CODE_OF_CONDUCT.md": "Docs",
+      "/SECURITY.md": "Docs",
+      "/regular-markdown.md": "Docs",
+      "/awesome-transformer.md": "Docs",
   },
   "config": {
       "title": "transformers",
