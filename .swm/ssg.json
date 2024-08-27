@@ -2,8 +2,8 @@
   "generator": "docusaurus",
   "url": "https://shujuuu.github.io/transformers/",
   "docs": {
-    "/awesome-transformers.md": "",
     "overview.vluhwh9u.sw.md": "",
+    "/awesome-transformers.md": "",
     "the-dataset-class.qzd05.sw.md": "Overview",
     "the-onnxconfig-class.ej8cw.sw.md": "Docs",
     "data-overview.kzcqdfi4.sw.md": "Overview",
