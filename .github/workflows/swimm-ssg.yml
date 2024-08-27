@@ -28,7 +28,7 @@ jobs:
         id: pages
         uses: actions/configure-pages@v5
       - name: Build
-        run: docker run --rm -v $PWD:/work us-docker.pkg.dev/swimm-dev/public/swimm-ssg:latest generate -C /work
+        run: docker run --rm -v $PWD:/work us-docker.pkg.dev/swimmio/public/swimm-ssg:0 generate -C /work
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
