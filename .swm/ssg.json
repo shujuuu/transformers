@@ -2,6 +2,7 @@
   "generator": "docusaurus",
   "url": "https://shujuuu.github.io/transformers/",
   "docs": {
+    "overview.vluhwh9u.sw.md": "Docs",
     "the-dataset-class.qzd05.sw.md": "Docs",
     "the-onnxconfig-class.ej8cw.sw.md": "Docs",
     "data-overview.kzcqdfi4.sw.md": "Docs",
@@ -29,7 +30,6 @@
     "main-function-flow-in-text-generation.3yz1j0iq.sw.md": "Docs",
     "the-dataprocessor-class.1hlwc.sw.md": "Docs",
     "exploring-model-evaluation-metrics.tu4r486a.sw.md": "Docs",
-    "overview.vluhwh9u.sw.md": "Docs",
     "pipelines-overview.wsdkbqhz.sw.md": "Docs",
     "model-conversion-to-onnx.mvk5zm06.sw.md": "Docs",
     "resizing-token-embeddings.448cw6fv.sw.md": "Docs",
@@ -53,7 +53,7 @@
     "understanding-image-segmentation-in-pipelines.ljbgea6j.sw.md": "Docs"
   },
   "config": {
-    "title": "Swimm Docs",
+    "title": "Transformers 1.0.0",
     "tagline": "Get started in minutes"
   }
 }
