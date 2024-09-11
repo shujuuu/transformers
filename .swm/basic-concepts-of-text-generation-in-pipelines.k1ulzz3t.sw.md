@@ -9,23 +9,19 @@ When the underlying model is a conversational model, the pipeline can also accep
 
 The pipeline can be loaded using the task identifier <SwmToken path="src/transformers/pipelines/text_generation.py" pos="73:3:5" line-data="    `&quot;text-generation&quot;`.">`text-generation`</SwmToken> and supports various models trained for text completion and conversational tasks.
 
-The <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="191:9:9" line-data="        output_ids = self.model.generate(**model_inputs, **generate_kwargs)">`generate`</SwmToken> method for text generation is implemented in the <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="54:24:24" line-data="    documentation](https://huggingface.co/docs/transformers/en/main_classes/text_generation#transformers.generation.GenerationMixin.generate)">`GenerationMixin`</SwmToken> class for each framework: <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="233:9:9" line-data="    # use bart in pytorch">`pytorch`</SwmToken>, <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="10:3:3" line-data="    import tensorflow as tf">`tensorflow`</SwmToken>, and Flax/JAX.
+The <SwmToken path="/src/transformers/pipelines/text2text_generation.py" pos="187:9:9" line-data="        output_ids = self.model.generate(**model_inputs, **generate_kwargs)">`generate`</SwmToken> method for text generation is implemented in the `GenerationMixin` class for each framework: <SwmToken path="/src/transformers/pipelines/text2text_generation.py" pos="229:9:9" line-data="    # use bart in pytorch">`pytorch`</SwmToken>, <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="10:3:3" line-data="    import tensorflow as tf">`tensorflow`</SwmToken>, and Flax/JAX.
 
-Text Generation Each framework has a generate method for text generation implemented in their respective <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="54:24:24" line-data="    documentation](https://huggingface.co/docs/transformers/en/main_classes/text_generation#transformers.generation.GenerationMixin.generate)">`GenerationMixin`</SwmToken> class: <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="233:9:9" line-data="    # use bart in pytorch">`pytorch`</SwmToken> `~generation.GenerationMixin.generate` is implemented in `~generation.GenerationMixin`, <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="10:3:3" line-data="    import tensorflow as tf">`tensorflow`</SwmToken> `~generation.TFGenerationMixin.generate` is implemented in `~generation.TFGenerationMixin`, and Flax/JAX `~generation.FlaxGenerationMixin.generate` is implemented in `~generation.FlaxGenerationMixin`.
+Text Generation Each framework has a generate method for text generation implemented in their respective <SwmToken path="/src/transformers/pipelines/text2text_generation.py" pos="50:24:24" line-data="    documentation](https://huggingface.co/docs/transformers/en/main_classes/text_generation#transformers.generation.GenerationMixin.generate)">`GenerationMixin`</SwmToken> class: <SwmToken path="/src/transformers/pipelines/text2text_generation.py" pos="229:9:9" line-data="    # use bart in pytorch">`pytorch`</SwmToken> `~generation.GenerationMixin.generate` is implemented in `~generation.GenerationMixin`, <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="10:3:3" line-data="    import tensorflow as tf">`tensorflow`</SwmToken> `~generation.TFGenerationMixin.generate` is implemented in `~generation.TFGenerationMixin`, and Flax/JAX `~generation.FlaxGenerationMixin.generate` is implemented in `~generation.FlaxGenerationMixin`.
 
-<SwmSnippet path="/src/transformers/pipelines/text2text_generation.py" line="26">
+<SwmSnippet path="src/transformers/pipelines/text2text_generation.py" line="26">
 
 ---
 
-The <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="26:2:2" line-data="class Text2TextGenerationPipeline(Pipeline):">`Text2TextGenerationPipeline`</SwmToken> class is an example of a pipeline for text-to-text generation using <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="28:15:15" line-data="    Pipeline for text to text generation using seq2seq models.">`seq2seq`</SwmToken> models. It demonstrates how to use the pipeline for generating text based on a given input.
+The <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="26:2:2" line-data="class Text2TextGenerationPipeline(Pipeline):">`Text2TextGenerationPipeline`</SwmToken> class is an example of a pipeline for text-to-text generation using `seq2seq` models. It demonstrates how to use the pipeline for generating text based on a given input.
 
-````python
+````
 class Text2TextGenerationPipeline(Pipeline):
     """
-    Pipeline for text to text generation using seq2seq models.
-
-    Example:
-
     ```python
     >>> from transformers import pipeline
 
@@ -41,6 +37,8 @@ class Text2TextGenerationPipeline(Pipeline):
     text generation parameters in [Text generation strategies](../generation_strategies) and [Text
     generation](text_generation).
 
+    This Text2TextGenerationPipeline pipeline can currently be loaded from [`pipeline`] using the following task
+    identifier: `"text2text-generation"`.
 ````
 
 ---
@@ -85,13 +83,13 @@ class TextGenerationPipeline(Pipeline):
 
 There are several main functions in this folder. Some of them are preprocess, \_forward, and postprocess. We will dive a little into preprocess and \_forward.
 
-<SwmSnippet path="/src/transformers/pipelines/text2text_generation.py" line="176">
+<SwmSnippet path="/src/transformers/pipelines/text2text_generation.py" line="172">
 
 ---
 
 ## preprocess
 
-The <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="176:3:3" line-data="    def preprocess(self, inputs, truncation=TruncationStrategy.DO_NOT_TRUNCATE, **kwargs):">`preprocess`</SwmToken> function is responsible for preparing the input data for the model. It tokenizes the input text and applies any necessary transformations before passing it to the model.
+The <SwmToken path="/src/transformers/pipelines/text2text_generation.py" pos="172:3:3" line-data="    def preprocess(self, inputs, truncation=TruncationStrategy.DO_NOT_TRUNCATE, **kwargs):">`preprocess`</SwmToken> function is responsible for preparing the input data for the model. It tokenizes the input text and applies any necessary transformations before passing it to the model.
 
 ```python
     def preprocess(self, inputs, truncation=TruncationStrategy.DO_NOT_TRUNCATE, **kwargs):
@@ -103,13 +101,13 @@ The <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="176
 
 </SwmSnippet>
 
-<SwmSnippet path="/src/transformers/pipelines/text2text_generation.py" line="180">
+<SwmSnippet path="/src/transformers/pipelines/text2text_generation.py" line="176">
 
 ---
 
 ## \_forward
 
-The <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="180:3:3" line-data="    def _forward(self, model_inputs, **generate_kwargs):">`_forward`</SwmToken> function handles the forward pass of the model. It generates the output sequences based on the input data and the specified generation parameters.
+The <SwmToken path="/src/transformers/pipelines/text2text_generation.py" pos="176:3:3" line-data="    def _forward(self, model_inputs, **generate_kwargs):">`_forward`</SwmToken> function handles the forward pass of the model. It generates the output sequences based on the input data and the specified generation parameters.
 
 ```python
     def _forward(self, model_inputs, **generate_kwargs):
@@ -136,13 +134,13 @@ The <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="180
 
 </SwmSnippet>
 
-<SwmSnippet path="/src/transformers/pipelines/text2text_generation.py" line="199">
+<SwmSnippet path="/src/transformers/pipelines/text2text_generation.py" line="195">
 
 ---
 
 ## postprocess
 
-The <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="199:3:3" line-data="    def postprocess(self, model_outputs, return_type=ReturnType.TEXT, clean_up_tokenization_spaces=False):">`postprocess`</SwmToken> function processes the model's output to produce the final generated text. It decodes the token <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="164:1:1" line-data="              ids of the generated text.">`ids`</SwmToken> into human-readable text and applies any necessary formatting.
+The <SwmToken path="/src/transformers/pipelines/text2text_generation.py" pos="195:3:3" line-data="    def postprocess(self, model_outputs, return_type=ReturnType.TEXT, clean_up_tokenization_spaces=False):">`postprocess`</SwmToken> function processes the model's output to produce the final generated text. It decodes the token <SwmToken path="/src/transformers/pipelines/text2text_generation.py" pos="160:1:1" line-data="              ids of the generated text.">`ids`</SwmToken> into human-readable text and applies any necessary formatting.
 
 ```python
     def postprocess(self, model_outputs, return_type=ReturnType.TEXT, clean_up_tokenization_spaces=False):
@@ -170,4 +168,4 @@ The <SwmToken path="src/transformers/pipelines/text2text_generation.py" pos="199
 
 *This is an auto-generated document by Swimm AI 🌊 and has not yet been verified by a human*
 
-<SwmMeta version="3.0.0" repo-id="Z2l0aHViJTNBJTNBdHJhbnNmb3JtZXJzJTNBJTNBc2h1anV1dQ==" repo-name="transformers" doc-type="overview"><sup>Powered by [Swimm](/)</sup></SwmMeta>
+<SwmMeta version="3.0.0" repo-id="Z2l0aHViJTNBJTNBdHJhbnNmb3JtZXJzJTNBJTNBc2h1anV1dQ==" repo-name="transformers" doc-type="overview"><sup>Powered by [Swimm](https://app.swimm.io/)</sup></SwmMeta>

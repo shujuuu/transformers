@@ -66,7 +66,7 @@ def ffmpeg_read(bpayload: bytes, sampling_rate: int) -> np.array:
 @add_end_docstrings(build_pipeline_init_args(has_feature_extractor=True))
 class AudioClassificationPipeline(Pipeline):
     """
-    Audio classification pipeline using any `AutoModelForAudioClassification`. This pipeline predicts the class of a
+    h classification pipeline using any `AutoModelForAudioClassification`. This pipeline predicts the class of a
     raw waveform or an audio file. In case of an audio file, ffmpeg should be installed to support multiple audio
     formats.
 

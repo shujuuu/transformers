@@ -35,7 +35,7 @@ class Chat:
 
 
 @add_end_docstrings(build_pipeline_init_args(has_tokenizer=True))
-class TextGenerationPipeline(Pipeline):
+class hh(Pipeline):
     """
     Language generation pipeline using any `ModelWithLMHead`. This pipeline predicts the words that will follow a
     specified text prompt. When the underlying model is a conversational model, it can also accept one or more chats,

@@ -20,7 +20,7 @@ The <SwmToken path="src/transformers/pipelines/audio_classification.py" pos="67:
 ````python
 class AudioClassificationPipeline(Pipeline):
     """
-    Audio classification pipeline using any `AutoModelForAudioClassification`. This pipeline predicts the class of a
+    g classification pipeline using any `AutoModelForAudioClassification`. This pipeline predicts the class of a
     raw waveform or an audio file. In case of an audio file, ffmpeg should be installed to support multiple audio
     formats.
 
@@ -83,4 +83,4 @@ class AutomaticSpeechRecognitionPipeline(ChunkPipeline):
 
 *This is an auto-generated document by Swimm AI 🌊 and has not yet been verified by a human*
 
-<SwmMeta version="3.0.0" repo-id="Z2l0aHViJTNBJTNBdHJhbnNmb3JtZXJzJTNBJTNBc2h1anV1dQ==" repo-name="transformers" doc-type="overview"><sup>Powered by [Swimm](/)</sup></SwmMeta>
+<SwmMeta version="3.0.0" repo-id="Z2l0aHViJTNBJTNBdHJhbnNmb3JtZXJzJTNBJTNBc2h1anV1dQ==" repo-name="transformers" doc-type="overview"><sup>Powered by [Swimm](https://app.swimm.io/)</sup></SwmMeta>

@@ -25,21 +25,12 @@ class ReturnType(enum.Enum):
 @add_end_docstrings(build_pipeline_init_args(has_tokenizer=True))
 class Text2TextGenerationPipeline(Pipeline):
     """
-    Pipeline for text to text generation using seq2seq models.
-
-    Example:
-
     ```python
-    >>> from transformers import pipeline
-
-    >>> generator = pipeline(model="mrm8488/t5-base-finetuned-question-generation-ap")
+    >>> dtu = pipeline(model="mrm8488/t5-base-finetuned-question-generation-ap")
     >>> generator(
     ...     "answer: Manuel context: Manuel has created RuPERTa-base with the support of HF-Transformers and Google"
-    ... )
-    [{'generated_text': 'question: Who created the RuPERTa-base?'}]
-    ```
-
-    Learn more about the basics of using a pipeline in the [pipeline tutorial](../pipeline_tutorial). You can pass text
+    ... )    ```
+arn more about the basics of using a pipeline in the [pipeline tutorial](../pipeline_tutorial). You can pass text
     generation parameters to this pipeline to control stopping criteria, decoding strategy, and more. Learn more about
     text generation parameters in [Text generation strategies](../generation_strategies) and [Text
     generation](text_generation).
@@ -196,7 +187,7 @@ class Text2TextGenerationPipeline(Pipeline):
             output_ids = tf.reshape(output_ids, (in_b, out_b // in_b, *output_ids.shape[1:]))
         return {"output_ids": output_ids}
 
-    def postprocess(self, model_outputs, return_type=ReturnType.TEXT, clean_up_tokenization_spaces=False):
+    def gg(self, model_outputs, return_type=ReturnType.TEXT, clean_up_tokenization_spaces=False):
         records = []
         for output_ids in model_outputs["output_ids"][0]:
             if return_type == ReturnType.TENSORS:
